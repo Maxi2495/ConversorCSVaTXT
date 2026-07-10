@@ -1,4 +1,0 @@
-ID_Muestra	Analito	Resultado	Unidades
-M001	HHV6-U38	Positivo	N/A
-M002	HHV6-U94	Negativo	N/A
-M003	Control_Interno	4500	Copias/mL

@@ -1,36 +1,49 @@
 import csv
+import os
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+from tkinter import messagebox
 
-archivo_entrada = 'datos.csv'
-archivo_salida = 'datos.txt'
+# Configuración oculta para que no se abra una ventana vacía de Tkinter
+Tk().withdraw()
 
-try:
-    with open(archivo_entrada, mode='r', encoding='utf-8') as csv_file:
-        lector_csv = csv.reader(csv_file, delimiter=',')
-        
-        with open(archivo_salida, mode='w', encoding='utf-8') as txt_file:
-            escritor_txt = csv.writer(txt_file, delimiter='\t')
+print("Por favor, selecciona el archivo CSV")
+
+# Ventana flotante. Permite solo csv
+ruta_archivo_entrada = askopenfilename(
+    title="Seleccionar reporte CSV del laboratorio",
+    filetypes=[("Archivos CSV", "*.csv")]
+)
+
+# Validacion si eligio archivo o cerro sin seleccionar nada
+if ruta_archivo_entrada:
+    
+    # Genera automaticamente el nombre del archivo (.txt)
+    # Mismo nombre, misma ruta pero diferente extension
+    ruta_base, _ = os.path.splitext(ruta_archivo_entrada)
+    ruta_archivo_salida = ruta_base + ".txt"
+    
+    try:
+        with open(ruta_archivo_entrada, mode='r', encoding='utf-8') as csv_file:
+            lector_csv = csv.reader(csv_file, delimiter=',')
             
-            for fila in lector_csv:
-                # Prevencion 1: Ignora filas completamente vacías o que solo tienen comas
-                if not fila or "".join(fila).strip() == "":
-                    continue
+            with open(ruta_archivo_salida, mode='w', encoding='utf-8') as txt_file:
+                escritor_txt = csv.writer(txt_file, delimiter='\t')
                 
-                fila_limpia = []
-                for celda in fila:
-                    # Prevencion2: Quita espacios  al principio y al final de cada dato
-                    dato = celda.strip()
+                for fila in lector_csv:
+                    if not fila or "".join(fila).strip() == "":
+                        continue
                     
-                    # Prevencion 3: Estandarizar decimales (Opcional)
-                    # Si el dato tiene un punto y es un número, podríamos reemplazarlo por coma.
-                    # Por ahora lo dejamos genérico, pero si Luminex te pide comas, activaríamos esto:
-                    # if "." in dato y es numérico -> dato = dato.replace(".", ",")
+                    fila_limpia = [celda.strip() for celda in fila]
+                    escritor_txt.writerow(fila_limpia)
                     
-                    fila_limpia.append(dato)
-                
-                # Escribimos la fila ya procesada y limpia en el archivo de texto
-                escritor_txt.writerow(fila_limpia)
-                
-    print(f"¡Éxito! El archivo '{archivo_entrada}' fue limpiado y convertido a '{archivo_salida}'.")
+        # Nombre del archivo para mostrar por mensaje
+        nombre_txt = os.path.basename(ruta_archivo_salida)
+        messagebox.showinfo("Proceso Terminado", f"¡Éxito!\nSe generó el archivo de texto: '{nombre_txt}'")
+        print("Lo encontrarás guardado en la misma carpeta donde estaba tu archivo original.")
 
-except FileNotFoundError:
-    print(f"Error: No se encontró el archivo '{archivo_entrada}'.")
+    except Exception as e:
+        print(f"\nOcurrió un error inesperado al procesar el archivo: {e}")
+else:
+    print("\nOperación cancelada. No se seleccionó ningún archivo.")
+
